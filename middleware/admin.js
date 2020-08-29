@@ -21,7 +21,11 @@ module.exports = async function (req, res, next) {
 
     // Getting all the users information and putting it in req.user for other functions to call
     req.user = await User.findById(userID.id)
-    next()
+    if (req.user.type != admin) {
+      return res.status(401).json({ msg: 'Not admin' })
+    } else {
+      next()
+    }
   } catch (error) {
     return res.status(401).json({ msg: 'Token is not valid' })
   }
