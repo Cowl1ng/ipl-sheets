@@ -6,7 +6,6 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 // Importing context
 import AuthState from './context/auth/AuthState'
 import AlertState from './context/alert/AlertState'
-import PlayerState from './context/player/PlayerState'
 
 import Navbar from './components/Navbar'
 // Importing page components
@@ -23,20 +22,18 @@ function App() {
     <div className='App'>
       <AlertState>
         <AuthState>
-          <PlayerState>
-            <Router>
-              <Navbar />
-              <div>
-                <Switch>
-                  <PrivateRoute exact path='/' component={Drafting} />
-                  <PrivateRoute exact path='/my_team' component={MyTeam} />
-                  <PrivateRoute exact path='/all_teams' component={AllTeams} />
-                  <Route exact path='/register' component={Register} />
-                  <Route exact path='/login' component={Login} />
-                </Switch>
-              </div>
-            </Router>
-          </PlayerState>
+          <Router>
+            <Navbar />
+            <div>
+              <Switch>
+                <PrivateRoute exact path='/' component={Drafting} />
+                <PrivateRoute exact path='/my_team' component={MyTeam} />
+                <PrivateRoute exact path='/all_teams' component={AllTeams} />
+                <Route exact path='/register' component={Register} />
+                <Route exact path='/login' component={Login} />
+              </Switch>
+            </div>
+          </Router>
         </AuthState>
       </AlertState>
     </div>

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const PlayerSchema = mongoose.Schema({
-  Name: {
+  Player_Name: {
     type: String,
     required: true,
   },
@@ -17,7 +17,7 @@ const PlayerSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  owner: {
+  Owner: {
     type: String,
     required: true,
     default: 'Undrafted',
