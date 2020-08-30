@@ -9,39 +9,35 @@ import { Container, Row, Col, Button } from 'react-bootstrap/'
 import { useMutation, useQuery } from 'react-query'
 
 import AuthContext from '../context/auth/authContext'
-
-const getNextPlayer = async () => {
-  const res = await Axios.get('/api/players/undrafted/next')
-  return res.data
-}
+import PlayerContext from '../context/player/playerContext'
 
 const sendBid = async (player, owner, bid, out) => {
   const res = await Axios.post('/api/players/bid', { player, owner, bid, out })
 }
 
 const getBids = async (key, player) => {
+  const nextPlayer = player[0]
   const res = await Axios.get(`/api/players/bid`, {
     params: {
-      player,
+      player: nextPlayer.Name,
     },
   })
-  console.log(res.data)
-  return res.data
-}
-const getMaxBid = async (key, player) => {
-  const res = await Axios.get(`/api/players/max_bid`, {
-    params: {
-      player,
-    },
-  })
-  console.log(res.data)
   return res.data
 }
 
 const Drafting = () => {
   const authContext = useContext(AuthContext)
+  const playerContext = useContext(PlayerContext)
 
   const { user } = authContext
+  const {
+    loadNextPlayer,
+    nextPlayer,
+    maxBid,
+    bids,
+    bidStatus,
+    bidStatusChange,
+  } = playerContext
 
   const [statusSending, setStatusSending] = useState(true)
   const [bid, setBid] = useState({
@@ -51,42 +47,23 @@ const Drafting = () => {
     out: false,
   })
 
-  const [auctionPlayer, setAuctionPlayer] = useState('')
-
   const [out, setOut] = useState(false)
   const [minBid, setMinBid] = useState(0)
 
-  const { data: nextPlayer, status: statusNextPlayer } = useQuery(
-    'nextPlayer',
-    getNextPlayer
-  )
-
-  const { data: Bids, status: statusBids, refetch: bidRefetch } = useQuery(
-    ['bids', auctionPlayer],
-    getBids,
-    {
-      enabled: false,
-    }
-  )
-  // const {
-  //   data: maxBid,
-  //   status: statusMaxBid,
-  //   refetch: maxBidRefetch,
-  // } = useQuery(['maxBid', auctionPlayer], getMaxBid, {
-  //   enabled: false,
-  // })
-
   const [mutate] = useMutation(sendBid, {})
   useEffect(() => {
-    if (statusNextPlayer === 'success') {
-      setAuctionPlayer(nextPlayer[0].Name)
-      bidRefetch()
-      // maxBidRefetch()
-      // if (maxBid) {
-      //   setMinBid(maxBid.value)
-      // }
+    if (nextPlayer) {
+      if (maxBid) {
+        setMinBid(maxBid.value)
+        setMinBid(0)
+      }
     }
-  }, [statusNextPlayer, nextPlayer, statusSending])
+  }, [nextPlayer, statusSending, maxBid])
+
+  useEffect(() => {
+    loadNextPlayer()
+    console.log(`NP: ${JSON.stringify(nextPlayer)}`)
+  }, [])
 
   const onChange = (e) => setBid(e.target.value)
 
@@ -94,9 +71,10 @@ const Drafting = () => {
     e.preventDefault()
     console.log('Posting bid')
     setStatusSending(!statusSending)
+    bidStatusChange(bidStatus)
     console.log(`SS: ${statusSending}`)
     mutate({
-      player: nextPlayer[0].Name,
+      player: nextPlayer.Name,
       owner: user.name,
       bid: bid,
       out: false,
@@ -118,12 +96,10 @@ const Drafting = () => {
       <Row>
         <Col lg={1}></Col>
         <Col lg={3}>
-          {statusNextPlayer === 'loading' && <div>Loading data... </div>}
-          {statusNextPlayer === 'error' && <div>Error fetching data</div>}
-          {statusNextPlayer === 'success' && (
+          {nextPlayer && (
             <h1>
               THE NEXT PLAYER:
-              <br /> {nextPlayer[0].Name}
+              <br /> {nextPlayer.Name}
             </h1>
           )}
         </Col>
@@ -135,8 +111,7 @@ const Drafting = () => {
               paddingBottom: 50,
             }}
           >
-            {/* <Stopwatch  winningBid={winningBid} /> */}
-            <h1 style={{ fontSize: 65 }}>00:30</h1>
+            <Stopwatch winningBid={maxBid} />
           </Row>
           <Row style={{ justifyContent: 'center', paddingBottom: 20 }}>
             <h1>Current Winning Bidder: £ Current Winning Bid</h1>
@@ -176,19 +151,18 @@ const Drafting = () => {
       <Row>
         <Col>
           <div>
-            {statusBids === 'loading' && <div>Loading data... </div>}
-            {statusBids === 'error' && <div>Error fetching data</div>}
-            {statusBids === 'idle' && <div>Waitingfor player</div>}
-            {statusBids === 'success' && (
+            {maxBid === '' && <div>Waitingfor bids</div>}
+            {maxBid && (
               <div>
-                {/* <h1>
+                <h1>
                   Largest Bid by {maxBid.owner} : {maxBid.value}
-                </h1> */}
-                {Bids.bids.map((bid) => (
-                  <li key={bid._id}>
-                    {bid.owner} : {bid.value}
-                  </li>
-                ))}
+                </h1>
+                {bids &&
+                  bids.bids.map((bid) => (
+                    <li key={bid._id}>
+                      {bid.owner} : {bid.value}
+                    </li>
+                  ))}
               </div>
             )}
           </div>

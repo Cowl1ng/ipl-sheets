@@ -64,7 +64,7 @@ router.get('/undrafted', async (req, res) => {
 
 router.get('/undrafted/next', async (req, res) => {
   try {
-    const players = await Player.find({ owner: 'Undrafted' }).limit(1)
+    const players = await Player.findOne({ owner: 'Undrafted' })
     res.send(players)
   } catch (error) {
     console.error(error.message)
@@ -96,11 +96,10 @@ router.post('/bid', async (req, res) => {
 router.get('/bid', async (req, res) => {
   try {
     const player = await Player.findOne({ Name: req.query.player })
-
-    const bids = await Bid.find({ player: player, out: false }).sort({
+    const bids = await Bid.find({ player: player._id, out: false }).sort({
       value: -1,
     })
-    const out = await Bid.find({ player: player, out: true })
+    const out = await Bid.find({ player: player._id, out: true })
     res.send({ bids, out })
   } catch (error) {
     console.error(error.message)
@@ -120,6 +119,24 @@ router.get('/max_bid', async (req, res) => {
       value: -1,
     })
     res.send(maxBid)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server Error')
+  }
+})
+
+router.put('/', async (req, res) => {
+  const { player, owner } = req.body
+  console.log(`Player: ${player}`)
+  console.log(`Owner: ${owner}`)
+  try {
+    updatedPlayer = await Player.findByIdAndUpdate(
+      player,
+      { owner: owner },
+      { new: true }
+    )
+    console.log(updatedPlayer)
+    res.end()
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Server Error')

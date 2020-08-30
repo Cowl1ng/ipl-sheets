@@ -7,5 +7,11 @@ export const LOGIN_FAIL = 'LOGIN_FAIL'
 export const LOGOUT = 'LOGOUT'
 export const CLEAR_ERRORS = 'CLEAR_ERRORS'
 
+export const PLAYER_LOADED = 'PLAYER_LOADED'
+export const PLAYER_ERROR = 'PLAYER_ERROR'
+export const BID_LOADED = 'BID_LOADED'
+export const BIDS_LOADED = 'BIDS_LOADED'
+export const BID_STATUS = 'BID_STATUS'
+
 export const SET_ALERT = 'SET_ALERT'
 export const REMOVE_ALERT = 'REMOVE_ALERT'
