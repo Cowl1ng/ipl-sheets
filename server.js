@@ -18,10 +18,6 @@ app.use(function (req, res, next) {
 // Init middleware
 app.use(express.json({ extended: false }))
 
-app.get('/', (req, res) => {
-  res.send('Hello World')
-})
-
 // Define routes
 app.use('/api/players', require('./routes/players'))
 app.use('/api/auth', require('./routes/auth'))
