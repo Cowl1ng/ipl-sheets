@@ -75,8 +75,10 @@ router.post(
   }
 )
 
-router.get('/', (req, res) => {
-  res.send('GET')
+router.get('/', async (req, res) => {
+  const users = await User.find({})
+  const userNames = users.map((user) => user.name)
+  res.send(userNames)
 })
 
 // Export router for use in server.js

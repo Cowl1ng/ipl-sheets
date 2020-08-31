@@ -17,12 +17,6 @@ const Navbar = ({ title, icon }) => {
       <li>
         <Link to='/'>Drafting</Link>
       </li>
-      <li>
-        <Link to='/my_team'>My Players</Link>
-      </li>
-      <li>
-        <Link to='/all_teams'>All Teams</Link>
-      </li>
       <li> Hello {user && user.name} </li>
       <li>
         <a onClick={onLogout} href='#!'>

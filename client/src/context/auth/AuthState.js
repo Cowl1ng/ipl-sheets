@@ -13,6 +13,8 @@ import {
   LOGIN_FAIL,
   LOGOUT,
   CLEAR_ERRORS,
+  LOAD_USERS,
+  LOAD_BALANCE,
 } from '../types'
 
 const AuthState = (props) => {
@@ -22,6 +24,8 @@ const AuthState = (props) => {
     loading: true,
     user: null,
     error: null,
+    users: null,
+    loadBalance: 100,
   }
 
   const [state, dispatch] = useReducer(AuthReducer, initialState)
@@ -94,6 +98,34 @@ const AuthState = (props) => {
   const logout = () => dispatch({ type: LOGOUT })
   // Clear errors
   const clearErrors = () => dispatch({ type: CLEAR_ERRORS })
+
+  // Load all users names
+  const loadUsers = async () => {
+    try {
+      const res = await Axios.get('/api/users')
+      dispatch({ type: LOAD_USERS, payload: res.data })
+    } catch (error) {
+      dispatch({ type: AUTH_ERROR })
+    }
+  }
+
+  // Load balance
+  const loadBalance = async (user) => {
+    let teamPrices = []
+    const res = await Axios.get(`/api/players/teams`)
+    for (const player of res.data) {
+      if (player.owner === user) {
+        teamPrices.push(player.price)
+      }
+    }
+    const balance =
+      100 -
+      teamPrices.reduce((a, b) => {
+        return a + b
+      }, 0)
+    dispatch({ type: LOAD_BALANCE, payload: balance })
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -102,11 +134,15 @@ const AuthState = (props) => {
         loading: state.loading,
         user: state.user,
         error: state.error,
+        users: state.users,
+        balance: state.balance,
         register,
         loadUser,
         login,
         logout,
         clearErrors,
+        loadUsers,
+        loadBalance,
       }}
     >
       {props.children}

@@ -28,21 +28,17 @@ router.get('/', async (req, res) => {
 // @desc Get players you have drafted
 // @access Private
 
-router.get(
-  '/my_team',
-  [check('name', 'Please include a name').not().isEmpty(), auth],
-  async (req, res) => {
-    try {
-      const myTeam = await Player.find({
-        Owner: req.user.name,
-      })
-      res.send(myTeam)
-    } catch (error) {
-      console.error(error.message)
-      res.status(500).send('Server Error')
-    }
+router.get('/teams', async (req, res) => {
+  try {
+    const teams = await Player.find({
+      owner: { $ne: 'Undrafted' },
+    }).sort({ owner: -1 })
+    res.send(teams)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server Error')
   }
-)
+})
 
 // @route GET api/players/undrafted
 // @desc Get limited number of undrafted players
@@ -64,7 +60,7 @@ router.get('/undrafted', async (req, res) => {
 
 router.get('/undrafted/next', async (req, res) => {
   try {
-    const players = await Player.find({ owner: 'Undrafted' }).limit(1)
+    const players = await Player.findOne({ owner: 'Undrafted' })
     res.send(players)
   } catch (error) {
     console.error(error.message)
@@ -77,13 +73,14 @@ router.get('/undrafted/next', async (req, res) => {
 // @access Public
 
 router.post('/bid', async (req, res) => {
-  const { player, owner, bid } = req.body.player
+  const { player, owner, bid, out } = req.body.player
   playerUp = await Player.findOne({ Name: `${player}` })
 
   const newBid = new Bid({
     player: playerUp._id,
     owner: owner,
     value: bid,
+    out: out,
   })
   await newBid.save()
   res.json(bid)
@@ -100,8 +97,24 @@ router.get('/bid', async (req, res) => {
     const bids = await Bid.find({ player: player, out: false }).sort({
       value: -1,
     })
+
+    res.send({ bids })
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server Error')
+  }
+})
+// @route GET api/players/bid/out
+// @desc Get outs for one player
+// @access Public
+
+router.get('/bid/out', async (req, res) => {
+  try {
+    const player = await Player.findOne({ Name: req.query.player })
+
     const out = await Bid.find({ player: player, out: true })
-    res.send({ bids, out })
+
+    res.json({ out })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Server Error')
@@ -120,6 +133,21 @@ router.get('/max_bid', async (req, res) => {
       value: -1,
     })
     res.send(maxBid)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server Error')
+  }
+})
+
+router.put('/', async (req, res) => {
+  const { player, owner, price } = req.body
+  try {
+    updatedPlayer = await Player.findByIdAndUpdate(
+      player,
+      { owner: owner, price: price },
+      { new: true }
+    )
+    res.end()
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Server Error')

@@ -3,45 +3,44 @@ import Axios from 'axios'
 
 import PlayerList from './PlayerList'
 import Stopwatch from './Stopwatch'
+import TeamList from './TeamList'
 
 // Bootstrap-react imports
 import { Container, Row, Col, Button } from 'react-bootstrap/'
 import { useMutation, useQuery } from 'react-query'
 
 import AuthContext from '../context/auth/authContext'
-
-const getNextPlayer = async () => {
-  const res = await Axios.get('/api/players/undrafted/next')
-  return res.data
-}
+import PlayerContext from '../context/player/playerContext'
 
 const sendBid = async (player, owner, bid, out) => {
   const res = await Axios.post('/api/players/bid', { player, owner, bid, out })
 }
 
 const getBids = async (key, player) => {
+  const nextPlayer = player[0]
   const res = await Axios.get(`/api/players/bid`, {
     params: {
-      player,
+      player: nextPlayer.Name,
     },
   })
-  console.log(res.data)
-  return res.data
-}
-const getMaxBid = async (key, player) => {
-  const res = await Axios.get(`/api/players/max_bid`, {
-    params: {
-      player,
-    },
-  })
-  console.log(res.data)
   return res.data
 }
 
 const Drafting = () => {
   const authContext = useContext(AuthContext)
+  const playerContext = useContext(PlayerContext)
 
-  const { user } = authContext
+  const { user, users, loadUsers, loadBalance, balance } = authContext
+  const {
+    loadNextPlayer,
+    nextPlayer,
+    maxBid,
+    bids,
+    bidStatus,
+    bidStatusChange,
+    loadTeams,
+    teams,
+  } = playerContext
 
   const [statusSending, setStatusSending] = useState(true)
   const [bid, setBid] = useState({
@@ -51,52 +50,31 @@ const Drafting = () => {
     out: false,
   })
 
-  const [auctionPlayer, setAuctionPlayer] = useState('')
-
   const [out, setOut] = useState(false)
-  const [minBid, setMinBid] = useState(0)
-
-  const { data: nextPlayer, status: statusNextPlayer } = useQuery(
-    'nextPlayer',
-    getNextPlayer
-  )
-
-  const { data: Bids, status: statusBids, refetch: bidRefetch } = useQuery(
-    ['bids', auctionPlayer],
-    getBids,
-    {
-      enabled: false,
-    }
-  )
-  // const {
-  //   data: maxBid,
-  //   status: statusMaxBid,
-  //   refetch: maxBidRefetch,
-  // } = useQuery(['maxBid', auctionPlayer], getMaxBid, {
-  //   enabled: false,
-  // })
 
   const [mutate] = useMutation(sendBid, {})
+
   useEffect(() => {
-    if (statusNextPlayer === 'success') {
-      setAuctionPlayer(nextPlayer[0].Name)
-      bidRefetch()
-      // maxBidRefetch()
-      // if (maxBid) {
-      //   setMinBid(maxBid.value)
-      // }
+    loadUsers()
+    console.log(`USERSS: ${users}`)
+    loadNextPlayer()
+    loadTeams()
+  }, [])
+
+  useEffect(() => {
+    setOut(false)
+    console.log(user)
+    if (user) {
+      loadBalance(user.name)
     }
-  }, [statusNextPlayer, nextPlayer, statusSending])
+  }, [nextPlayer])
 
   const onChange = (e) => setBid(e.target.value)
 
   const onSubmit = (e) => {
     e.preventDefault()
-    console.log('Posting bid')
-    setStatusSending(!statusSending)
-    console.log(`SS: ${statusSending}`)
     mutate({
-      player: nextPlayer[0].Name,
+      player: nextPlayer.Name,
       owner: user.name,
       bid: bid,
       out: false,
@@ -106,9 +84,9 @@ const Drafting = () => {
   const handleClick = () => {
     setOut(true)
     mutate({
-      player: nextPlayer[0].Name,
+      player: nextPlayer.Name,
       owner: user.name,
-      bid: bid,
+      bid: 0,
       out: true,
     })
   }
@@ -117,13 +95,11 @@ const Drafting = () => {
     <Container fluid>
       <Row>
         <Col lg={1}></Col>
-        <Col lg={3}>
-          {statusNextPlayer === 'loading' && <div>Loading data... </div>}
-          {statusNextPlayer === 'error' && <div>Error fetching data</div>}
-          {statusNextPlayer === 'success' && (
+        <Col lg={2}>
+          {nextPlayer && (
             <h1>
-              THE NEXT PLAYER:
-              <br /> {nextPlayer[0].Name}
+              Player UP:
+              <br /> {nextPlayer.Name}
             </h1>
           )}
         </Col>
@@ -135,22 +111,21 @@ const Drafting = () => {
               paddingBottom: 50,
             }}
           >
-            {/* <Stopwatch  winningBid={winningBid} /> */}
-            <h1 style={{ fontSize: 65 }}>00:30</h1>
+            <Stopwatch winningBid={maxBid} />
           </Row>
-          <Row style={{ justifyContent: 'center', paddingBottom: 20 }}>
-            <h1>Current Winning Bidder: £ Current Winning Bid</h1>
-          </Row>
+          <Row style={{ justifyContent: 'center', paddingBottom: 20 }}></Row>
           <Row style={{ justifyContent: 'center', paddingBottom: 50 }}>
             <form onSubmit={onSubmit}>
               <input
                 type='number'
                 name='bidValue'
                 step='1'
-                min={minBid + 1}
+                min='1'
+                max={balance}
                 value={bid}
                 onChange={onChange}
                 required
+                style={{ fontSize: 50, textAlign: 'center', width: 300 }}
               />
               <input
                 type='submit'
@@ -165,7 +140,7 @@ const Drafting = () => {
             </Button>
           </Row>
           <Row style={{ justifyContent: 'center', paddingBottom: 20 }}>
-            <h1>Your remaining balance: £ X</h1>
+            <h1>Your remaining balance: £ {balance}</h1>
           </Row>
         </Col>
         <Col>
@@ -173,27 +148,8 @@ const Drafting = () => {
           <PlayerList />
         </Col>
       </Row>
-      <Row>
-        <Col>
-          <div>
-            {statusBids === 'loading' && <div>Loading data... </div>}
-            {statusBids === 'error' && <div>Error fetching data</div>}
-            {statusBids === 'idle' && <div>Waitingfor player</div>}
-            {statusBids === 'success' && (
-              <div>
-                {/* <h1>
-                  Largest Bid by {maxBid.owner} : {maxBid.value}
-                </h1> */}
-                {Bids.bids.map((bid) => (
-                  <li key={bid._id}>
-                    {bid.owner} : {bid.value}
-                  </li>
-                ))}
-              </div>
-            )}
-          </div>
-        </Col>
-      </Row>
+
+      <TeamList />
     </Container>
   )
 }
