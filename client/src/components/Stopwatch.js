@@ -37,6 +37,8 @@ const Stopwatch = ({ winningBid }) => {
   const [delay, setDelay] = useState(0)
   const [timer, setTimer] = useState(false)
   const [winningBidValue, setWinningBidValue] = useState(0)
+  const [lastPlayer, setLastPlayer] = useState('')
+  const [lastWinningBid, setLastWinningBid] = useState('')
 
   // Set up timer counting down with delay of 5 seconds at zero
   useInterval(() => {
@@ -45,8 +47,11 @@ const Stopwatch = ({ winningBid }) => {
       setTimer(!timer)
     } else {
       if (delay === 1) {
-        // Send winning bid
+        setLastPlayer(nextPlayer.Name)
         if (winningBid) {
+          setLastWinningBid(winningBid.owner)
+          // Send winning bid
+
           mutate({
             player: winningBid.player,
             owner: winningBid.owner,
@@ -54,10 +59,11 @@ const Stopwatch = ({ winningBid }) => {
           })
         } else {
           mutate({ player: nextPlayer, owner: 'teamless' })
+          setLastWinningBid('Noone')
         }
       }
       setDelay(delay + 1)
-      if (delay > 3) {
+      if (delay > 5) {
         setSeconds(maxSeconds)
         setDelay(0)
       }
@@ -137,8 +143,10 @@ const Stopwatch = ({ winningBid }) => {
 
   return (
     <div>
-      {delay > 0 ? (
-        <h1 style={{ fontSize: 65 }}>WINNER WAS {winningBid.owner}</h1>
+      {delay > 1 ? (
+        <h1 style={{ fontSize: 65 }}>
+          {lastPlayer} SOLD TO {lastWinningBid}
+        </h1>
       ) : (
         <h1 style={{ fontSize: 65 }}>00 : {seconds}</h1>
       )}
