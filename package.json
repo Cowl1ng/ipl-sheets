@@ -18,6 +18,8 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server. js",
+    "build": "npm run build --prefix client",
+    "heroku-postbuild": "npm run clientinstall && npm run build",
     "client": "npm start --prefix client",
     "clientinstall": "npm install --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\""
