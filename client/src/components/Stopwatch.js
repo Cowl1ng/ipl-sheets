@@ -44,7 +44,7 @@ const Stopwatch = ({ winningBid }) => {
       setSeconds(seconds - 1)
       setTimer(!timer)
     } else {
-      if (delay === 0) {
+      if (delay === 1) {
         // Send winning bid
         if (winningBid) {
           mutate({
@@ -57,7 +57,7 @@ const Stopwatch = ({ winningBid }) => {
         }
       }
       setDelay(delay + 1)
-      if (delay > 1) {
+      if (delay > 3) {
         setSeconds(maxSeconds)
         setDelay(0)
       }
