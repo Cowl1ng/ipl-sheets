@@ -11,6 +11,7 @@ import {
   OUTS_LOADED,
   SET_PAUSE,
   LOAD_TEAMS,
+  GET_UNDRAFTED,
 } from '../types'
 
 const PlayerState = (props) => {
@@ -26,6 +27,7 @@ const PlayerState = (props) => {
     team2: [],
     team3: [],
     team4: [],
+    undraftedPlayers: [],
     pause: false,
   }
 
@@ -71,16 +73,13 @@ const PlayerState = (props) => {
 
   // Load out bids
   const loadOuts = async (player) => {
-    if (player) {
-      console.log(`PLAYER: ${player.Name}`)
-    }
     try {
       const res = await Axios.get('/api/players/bid/out', {
         params: {
           player: player.Name,
         },
       })
-      console.log(`RD: ${JSON.stringify(res.data)}`)
+      console.log(`OUTS${JSON.stringify(res.data)}`)
       dispatch({ type: OUTS_LOADED, payload: res.data })
     } catch (error) {
       dispatch({ type: PLAYER_ERROR })
@@ -113,9 +112,18 @@ const PlayerState = (props) => {
     })
   }
 
+  // Get undrafted players
+  const getUndrafted = async () => {
+    try {
+      const res = await Axios.get('/api/players/undrafted')
+      dispatch({ type: GET_UNDRAFTED, payload: res.data })
+    } catch (error) {
+      dispatch({ type: PLAYER_ERROR })
+    }
+  }
+
   // Pause the timer
   const setPause = async (bool) => {
-    // console.log(`B:${bool}`)
     dispatch({ type: SET_PAUSE, payload: bool })
   }
 
@@ -133,11 +141,13 @@ const PlayerState = (props) => {
         team3: state.team3,
         team4: state.team4,
         pause: state.pause,
+        undraftedPlayers: state.undraftedPlayers,
         loadNextPlayer,
         loadMaxBid,
         loadBids,
         loadTeams,
         loadOuts,
+        getUndrafted,
         setPause,
       }}
     >

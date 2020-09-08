@@ -47,7 +47,8 @@ router.get('/teams', async (req, res) => {
 router.get('/undrafted', async (req, res) => {
   try {
     const players = await Player.find({ owner: 'Undrafted' }).limit(20)
-    res.send(players)
+    const playerList = players.slice(1)
+    res.send(playerList)
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Server Error')

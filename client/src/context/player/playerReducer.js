@@ -6,6 +6,7 @@ import {
   SET_PAUSE,
   OUTS_LOADED,
   LOAD_TEAMS,
+  GET_UNDRAFTED,
 } from '../types'
 
 export default (state, action) => {
@@ -29,6 +30,11 @@ export default (state, action) => {
       return {
         ...state,
         outs: action.payload,
+      }
+    case GET_UNDRAFTED:
+      return {
+        ...state,
+        undraftedPlayers: action.payload,
       }
     case SET_PAUSE:
       return {

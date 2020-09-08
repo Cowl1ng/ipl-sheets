@@ -36,6 +36,7 @@ const Stopwatch = ({ winningBid }) => {
   const [seconds, setSeconds] = useState(0)
   const [delay, setDelay] = useState(0)
   const [timer, setTimer] = useState(false)
+  const [slowTimer, setSlowTimer] = useState(false)
   const [winningBidValue, setWinningBidValue] = useState(0)
 
   // Set up timer counting down with delay of 5 seconds at zero
@@ -77,34 +78,25 @@ const Stopwatch = ({ winningBid }) => {
   }, [])
 
   useEffect(() => {
-    loadNextPlayer()
     loadMaxBid(nextPlayer)
     if (winningBid) {
       setWinningBidValue(winningBid.value)
     }
     loadBids(nextPlayer)
-    if (nextPlayer) {
-      console.log(`NP:${nextPlayer.Name}`)
-    }
     loadOuts(nextPlayer)
     if (seconds < maxSeconds - 2) {
       if (outs) {
-        console.log(`OUTS: ${JSON.stringify(outs)}`)
         let outNames = [...new Set(outs.out.map((bid) => bid.owner))]
-        console.log(`ON: ${outNames}`)
+
         if (winningBid) {
-          console.log(`WBN: ${winningBid.owner}`)
           const outNotWinning = []
           for (const outName of outNames) {
             if (outName !== winningBid.owner) {
               outNotWinning.push(outName)
             }
           }
-          console.log(`ONW: ${outNotWinning}`)
           var outLength = outNotWinning.length
-          console.log(`WBOL: ${outLength}`)
           if (outLength > 2) {
-            console.log(`Sending`)
             mutate({
               player: winningBid.player,
               owner: winningBid.owner,
@@ -114,9 +106,7 @@ const Stopwatch = ({ winningBid }) => {
           }
         } else {
           var outLength = outNames.length
-          console.log(`NWBOL: ${outLength}`)
           if (outLength > 3) {
-            console.log(`Sending no winner`)
             mutate({ player: nextPlayer, owner: 'teamless' })
             outLength = 0
             setSeconds(maxSeconds)
@@ -127,7 +117,16 @@ const Stopwatch = ({ winningBid }) => {
     if (pause) {
       setSeconds(maxSeconds)
     }
+    if (seconds % 5 === 0) {
+      setSlowTimer(true)
+    } else if (slowTimer === true) {
+      setSlowTimer(false)
+    }
   }, [timer])
+
+  useEffect(() => {
+    loadNextPlayer()
+  }, [slowTimer])
 
   const [mutate] = useMutation(assignPlayer, {})
 
@@ -138,7 +137,14 @@ const Stopwatch = ({ winningBid }) => {
   return (
     <div>
       {delay > 0 ? (
-        <h1 style={{ fontSize: 65 }}>WINNER WAS {winningBid.owner}</h1>
+        <h1 style={{ fontSize: 65 }}>
+          SOLD TO{' '}
+          {winningBid.owner ? (
+            winningBid.owner
+          ) : (
+            <h1 style={{ fontSize: 65 }}>Noone</h1>
+          )}
+        </h1>
       ) : (
         <h1 style={{ fontSize: 65 }}>00 : {seconds}</h1>
       )}

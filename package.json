@@ -22,6 +22,7 @@
     "heroku-postbuild": "npm run clientinstall && npm run build",
     "client": "npm start --prefix client",
     "clientinstall": "npm install --prefix client",
+    "full-install": "npm install && npm install --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "",
