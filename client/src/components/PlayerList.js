@@ -1,28 +1,26 @@
 import React, { useContext, useEffect } from 'react'
 import Axios from 'axios'
 import AuthContext from '../context/auth/authContext'
-
-import { useQuery } from 'react-query'
-
-const getPlayers = async () => {
-  const res = await Axios.get('/api/players/undrafted')
-  return res.data
-}
+import PlayerContext from '../context/player/playerContext'
 
 const PlayerList = () => {
   const authContext = useContext(AuthContext)
+  const playerContext = useContext(PlayerContext)
+  const { getUndrafted, undraftedPlayers, nextPlayer } = playerContext
   useEffect(() => {
     authContext.loadUser()
     console.log(`Authenticated: ${authContext.isAuthenticated}`)
+    getUndrafted()
   }, []) // eslint-disable-line
-  const { data, status } = useQuery('players', getPlayers)
+
+  useEffect(() => {
+    getUndrafted()
+  }, [nextPlayer]) // eslint-disable-line
   return (
     <div>
-      {status === 'loading' && <div>Loading data... </div>}
-      {status === 'error' && <div>Error fetching data</div>}
-      {status === 'success' && (
+      {undraftedPlayers && (
         <div>
-          {data.map((player) => (
+          {undraftedPlayers.map((player) => (
             <li key={player.Name}>{player.Name}</li>
           ))}
         </div>

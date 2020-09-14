@@ -16,6 +16,7 @@ export const BIDS_LOADED = 'BIDS_LOADED'
 export const OUTS_LOADED = 'OUTS_LOADED'
 export const SET_PAUSE = 'SET_PAUSE'
 export const LOAD_TEAMS = 'LOAD_TEAMS'
+export const GET_UNDRAFTED = 'GET_UNDRAFTED'
 
 export const SET_ALERT = 'SET_ALERT'
 export const REMOVE_ALERT = 'REMOVE_ALERT'

@@ -40,9 +40,12 @@ const Drafting = () => {
     bidStatusChange,
     loadTeams,
     teams,
+    loadOuts,
+    outs,
   } = playerContext
 
   const [statusSending, setStatusSending] = useState(true)
+  const [buttonState, setButtonState] = useState('primary')
   const [bid, setBid] = useState({
     player: '',
     owner: '',
@@ -63,11 +66,24 @@ const Drafting = () => {
 
   useEffect(() => {
     setOut(false)
-    console.log(user)
     if (user) {
       loadBalance(user.name)
     }
   }, [nextPlayer])
+
+  useEffect(() => {
+    if (nextPlayer) {
+      loadOuts(nextPlayer)
+      if (outs) {
+        let outNames = [...new Set(outs.out.map((bid) => bid.owner))]
+        if (outNames.includes(user.name)) {
+          setButtonState('danger')
+        } else {
+          setButtonState('primary')
+        }
+      }
+    }
+  }, [out, nextPlayer])
 
   const onChange = (e) => setBid(e.target.value)
 
@@ -135,7 +151,7 @@ const Drafting = () => {
             </form>
           </Row>
           <Row style={{ justifyContent: 'center', paddingBottom: 50 }}>
-            <Button size='lg' disabled={out} onClick={handleClick}>
+            <Button size='lg' variant={buttonState} onClick={handleClick}>
               OUT
             </Button>
           </Row>

@@ -21,8 +21,13 @@
     "build": "npm run build --prefix client",
     "client": "npm start --prefix client",
     "clientinstall": "npm install --prefix client",
+<<<<<<< HEAD
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm run clientinstall && npm run build"
+=======
+    "full-install": "npm install && npm install --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+>>>>>>> 22f327d9dde78f3928a19dfa1437637b6b704b31
   },
   "author": "",
   "license": "ISC"
